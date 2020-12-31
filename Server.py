@@ -14,6 +14,7 @@ endMessage = None
 TCP_PORT = 2060
 hostName = "local" #eth1/eth2
 
+#Thread that handle a single client
 class ClientThread(Thread):
 
     def __init__(self, ip, port, team,conn):
@@ -49,6 +50,7 @@ class ClientThread(Thread):
         except:
             0
 
+#Thread that wait for tcp clients and create client thread for each
 class initClientThreads(Thread):
 
     def __init__(self):
@@ -69,6 +71,57 @@ class initClientThreads(Thread):
             newthread.start()
             threads.append(newthread)
         exit(0)
+
+def startGame(threads):
+    for t in threads:
+        t.startGame = True
+
+def endGame(threads):
+    for t in threads:
+        t.active = False
+
+def calcFinalScore (threads):
+    finalScore = {"1": 0, "2": 0}
+    for t in threads:
+        finalScore[t.team] += t.score
+    return finalScore
+
+def getEndMessage (finalScore):
+    if (finalScore["1"] > finalScore["2"]):
+        winners = "1"
+    elif (finalScore["1"] < finalScore["2"]):
+        winners = "2"
+    else:
+        winners = "DRAW"
+        endMessage = """
+                    Game over!
+                    Group 1 typed in {} characters. Group 2 typed in {} characters.
+                    Its a DRAW!
+                    """.format(finalScore["1"], finalScore["2"])
+    if (winners != "DRAW"):
+        endMessage = """
+                Game over!
+                Group 1 typed in {} characters. Group 2 typed in {} characters.
+                Group {} wins!
+                Congratulations to the winners:
+                ==
+                {}
+                """.format(finalScore["1"], finalScore["2"], winners, "".join(teams[winners]))
+    return endMessage
+
+def getStartMessage (teams):
+    startMessage = """"
+                Welcome to Keyboard Spamming Battle Royale.
+                Group 1:
+                ==
+                {}
+                Group 2:
+                ==
+                {}
+                Start pressing keys on your keyboard as fast as you can!!
+                """.format("".join(teams["1"]), "".join(teams["2"]))
+    return startMessage
+
 
 def main():
     global startMessage
@@ -105,44 +158,13 @@ def main():
             initThread.start()
             time.sleep(10)
             initThread.running = False
-            startMessage = """"
-            Welcome to Keyboard Spamming Battle Royale.
-            Group 1:
-            ==
-            {}
-            Group 2:
-            ==
-            {}
-            Start pressing keys on your keyboard as fast as you can!!
-            """.format("".join(teams["1"]),"".join(teams["2"]))
-            for t in threads:
-                t.startGame = True
+            startMessage = getStartMessage (teams)
+            startGame(threads)
+            #let the game run for 10 seconds
             time.sleep(10)
-            for t in threads:
-                t.active = False
-            finalScore = {"1":0,"2":0}
-            for t in threads:
-                finalScore[t.team]+=t.score
-            if(finalScore["1"] > finalScore["2"]):
-                winners = "1"
-            elif(finalScore["1"] < finalScore["2"]):
-                winners = "2"
-            else:
-                winners = "DRAW"
-                endMessage = """
-                Game over!
-                Group 1 typed in {} characters. Group 2 typed in {} characters.
-                Its a DRAW!
-                """.format(finalScore["1"], finalScore["2"])
-            if(winners!="DRAW"):
-                endMessage = """
-            Game over!
-            Group 1 typed in {} characters. Group 2 typed in {} characters.
-            Group {} wins!
-            Congratulations to the winners:
-            ==
-            {}
-            """.format(finalScore["1"],finalScore["2"],winners,"".join(teams[winners]))
+            endGame(threads)
+            finalScore = calcFinalScore(threads)
+            endMessage = getEndMessage(finalScore)
             for t in threads:
                 t.join()
             print ("Game over, sending out offer requests...")
