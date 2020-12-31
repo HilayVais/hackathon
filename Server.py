@@ -160,6 +160,7 @@ def main():
             initThread.running = False
             startMessage = getStartMessage (teams)
             startGame(threads)
+
             #let the game run for 10 seconds
             time.sleep(10)
             endGame(threads)

@@ -5,8 +5,10 @@ import sys
 from threading import Thread
 # from SocketServer import ThreadingMixIn
 
-teamName = "Hapoel"
-sock = None
+#you can enter the team name by uncomment the line
+teamName = "ClientServer"
+
+#this thread used to menage the connection with the server and send the key pressed
 class gameThread(Thread):
 
     def __init__(self, sock):
@@ -20,8 +22,6 @@ class gameThread(Thread):
                 message = input('')
                 if(self.running):
                     self.sock.sendall(message.encode('utf-8'))
-                # else:
-                #     sock.close()
             exit(0)
         except Exception as e:
             # print ("Error occured, stop clicking")
@@ -31,6 +31,7 @@ class gameThread(Thread):
 def main():
     global sock
     # teamName = input('Enter your team name:')
+    #set uo udp client
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
     client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     client.bind(("", 13117))
@@ -85,7 +86,6 @@ def main():
             print(endMessage)
         except Exception as e:
             print ("Error occured, starting new session")
-            print (e)
 
 if __name__ == "__main__":
     # execute only if run as a script
